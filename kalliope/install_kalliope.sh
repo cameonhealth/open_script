@@ -130,11 +130,11 @@ fi
 platform=$(cat /etc/os-release | grep ID= | awk '/[a-b]/{print $1}' | sed -e "s/ID=//")
 if [ ${platform} = "ubuntu" ]
     then
-    echo_green "OS name : $platform"
+    echo_green "OS name : Ubuntu"
     install_default_packages_ubuntu
 elif [ ${platform} = "raspbian" ]
     then
-    echo_green "OS name : $platform"
+    echo_green "OS name : Raspbian"
     install_default_packages
     if command -v pico2wave &>/dev/null; then
         echo_green "Pico2wave is installed"
