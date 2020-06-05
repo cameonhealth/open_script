@@ -24,8 +24,8 @@ echo_yellow(){
 
 install_default_packages(){
     echo_green "Installing system packages..."
-    sudo apt-get update
-    sudo apt-get install -y git python3-dev libsmpeg0 \
+    sudo apt update
+    sudo apt install -y git python3-dev libsmpeg0 \
     flac libffi-dev libffi-dev libssl-dev portaudio19-dev build-essential \
     libssl-dev libffi-dev sox libatlas3-base mplayer libyaml-dev libpython3-dev libjpeg-dev
     sudo apt-get install -y libportaudio0 libportaudio2 libportaudiocpp0  \
@@ -35,7 +35,7 @@ install_default_packages(){
 
 install_default_packages_ubuntu(){
     echo_green "Installing system packages..."
-    sudo apt-get update
+    sudo apt update
     sudo apt install -y git python3-dev python3.7-dev libsmpeg0 
     libttspico-utils flac libffi-dev libssl-dev portaudio19-dev build-essential \
     sox libatlas3-base mplayer wget vim sudo locales alsa-base alsa-utils \
