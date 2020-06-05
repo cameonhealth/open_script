@@ -164,4 +164,4 @@ fi
 install_kalliope
 
 # fix https://github.com/kalliope-project/kalliope/issues/487
-sudo chmod -R o+r /usr/local/lib/python3.7/dist-packages/
+# sudo chmod -R o+r /usr/local/lib/python3.7/dist-packages/
