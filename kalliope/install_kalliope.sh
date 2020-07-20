@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 # This script will install automatically everything needed for Kalliope
 # usage: ./rpi_install_kalliope.sh [<branch_name>]
@@ -27,7 +27,7 @@ install_default_packages(){
     sudo apt update
     sudo apt install -y git python3-dev libsmpeg0 \
     flac libffi-dev libffi-dev libssl-dev portaudio19-dev build-essential \
-    libssl-dev libffi-dev sox libatlas3-base mplayer libyaml-dev libpython3-dev libjpeg-dev
+    libssl-dev libffi-dev sox libatlas3-base mplayer libyaml-dev libpython3-dev libjpeg-dev \
     sudo apt-get install -y libportaudio0 libportaudio2 libportaudiocpp0  \
     apt-transport-https python3-venv
     echo_green "Installing system packages...[OK]"
@@ -36,8 +36,7 @@ install_default_packages(){
 install_default_packages_ubuntu(){
     echo_green "Installing system packages..."
     sudo apt update
-    sudo apt install -y git python3-dev libsmpeg0 alsa-utils \ 
-    libffi-dev libssl-dev portaudio19-dev build-essential \
+    sudo apt install -y git python3-dev libsmpeg0 alsa-utils libffi-dev libssl-dev portaudio19-dev build-essential \
     sox libatlas3-base mplayer wget vim sudo locales alsa-base alsa-utils \
     pulseaudio-utils libasound2-plugins python3-pyaudio libasound-dev \
     libportaudio2 libportaudiocpp0 ffmpeg python3-venv
