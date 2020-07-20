@@ -37,7 +37,7 @@ install_default_packages_ubuntu(){
     echo_green "Installing system packages..."
     sudo apt update
     sudo apt install -y git python3-dev libsmpeg0 alsa-utils \ 
-    libttspico-utils flac libffi-dev libssl-dev portaudio19-dev build-essential \
+    libffi-dev libssl-dev portaudio19-dev build-essential \
     sox libatlas3-base mplayer wget vim sudo locales alsa-base alsa-utils \
     pulseaudio-utils libasound2-plugins python3-pyaudio libasound-dev \
     libportaudio2 libportaudiocpp0 ffmpeg python3-venv
