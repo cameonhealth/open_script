@@ -11,6 +11,7 @@
 # name of the branch to install
 branch="master"
 python_version="3.7.6"
+pulseaudio_service_path="/etc/systemd/system/pulseaudio.service"
 #------------------------------------------
 # Functions
 #------------------------------------------
@@ -27,25 +28,26 @@ install_default_packages(){
     sudo apt update
     sudo apt install -y git python3-dev libsmpeg0 \
     flac libffi-dev libffi-dev libssl-dev portaudio19-dev build-essential \
-    libssl-dev libffi-dev sox libatlas3-base mplayer libyaml-dev libpython3-dev libjpeg-dev \
-    sudo apt-get install -y libportaudio0 libportaudio2 libportaudiocpp0  \
-    apt-transport-https python3-venv
+    libssl-dev libffi-dev libatlas3-base mplayer libyaml-dev libpython3-dev libjpeg-dev
+    sudo apt install -y libportaudio0 libportaudio2 libportaudiocpp0  \
+    apt-transport-https python3-venv pulseaudio
     echo_green "Installing system packages...[OK]"
 }
 
 install_default_packages_ubuntu(){
     echo_green "Installing system packages..."
     sudo apt update
-    sudo apt install -y git python3-dev libsmpeg0 alsa-utils libffi-dev libssl-dev portaudio19-dev build-essential \
-    sox libatlas3-base mplayer wget vim sudo locales alsa-base alsa-utils \
-    pulseaudio-utils libasound2-plugins python3-pyaudio libasound-dev \
-    libportaudio2 libportaudiocpp0 ffmpeg python3-venv
+    sudo apt install -y git python3-dev libsmpeg0 alsa-utils libffi-dev \
+    libssl-dev portaudio19-dev build-essential libatlas3-base mplayer \
+    wget vim sudo locales alsa-base alsa-utils 
+    sudo apt install -y pulseaudio-utils libasound2-plugins python3-pyaudio libasound-dev \
+    libportaudio2 libportaudiocpp0 ffmpeg python3-venv pulseaudio
     echo_green "Installing system packages...[OK]"
 
 }
 
 install_python3(){
-     sudo apt-get install build-essential tk-dev libncurses5-dev libncursesw5-dev libreadline6-dev libdb5.3-dev \
+     sudo apt install build-essential tk-dev libncurses5-dev libncursesw5-dev libreadline6-dev libdb5.3-dev \
      libgdbm-dev libsqlite3-dev libssl-dev libbz2-dev libexpat1-dev liblzma-dev zlib1g-dev libffi-dev -y
 
      wget https://www.python.org/ftp/python/${python_version}/Python-${python_version}.tar.xz
@@ -59,7 +61,7 @@ install_python3(){
 
 install_pip3(){
     echo_green "Installing python pip..."
-    sudo apt-get install -y python3-distutils
+    sudo apt install -y python3-distutils
     wget https://bootstrap.pypa.io/get-pip.py
     sudo python3 get-pip.py
     echo_green "Installing python pip... [OK]"
@@ -108,10 +110,79 @@ install_kalliope(){
     cd ..
     echo_green "Installing Kalliope...[OK]"
 }
+
 git_credential_set(){
     echo_green "Git credential set..."
     git config --global credential.helper cache --timeout=360
     echo_green "Git credential set...[OK]"
+}
+
+setup_pulseaudio(){
+    # Get the current user
+    current_user=$(logname)
+
+    # Check if default-server already exists in client.conf
+    if grep -Fxq "default-server = /var/run/pulse/native" /etc/pulse/client.conf; then
+        echo_yellow '"default-server = /var/run/pulse/native" already in /etc/pulse/client.conf'
+    else
+        # If not, we add it to /etc/pulse/client.conf
+        echo_green "Adding default-server to /etc/pulse/client.conf..[OK]"
+        echo "default-server = /var/run/pulse/native" | sudo tee -a /etc/pulse/client.conf >/dev/null
+    fi
+
+    # Check if autospawn already exists in client.conf
+    if grep -Fxq "autospawn = no" /etc/pulse/client.conf; then
+        echo_yellow '"autospawn = no" already in /etc/pulse/client.conf'
+    else
+        # If not, we add it to /etc/pulse/client.conf
+        echo_green "Adding 'autospawn = no' to /etc/pulse/client.conf..[OK]"
+        echo 'autospawn = no' | sudo tee -a /etc/pulse/client.conf >/dev/null
+    fi
+
+    # The Pi users needs to be in pulse-access group, check if already a member
+    if id -nG "$current_user" | grep -qw "pulse-access"; then
+        echo_yellow "$current_user is already a member of the group pulse-access"
+    else
+        # If not, then we add it to pulse-access
+        echo_green "Adding user $current_user to group pulse-access"
+        sudo usermod -a -G pulse-access $current_user
+    fi
+
+    # Check if alsa-sink already exists in system.pa
+    if grep -Fxq 'load-module module-alsa-sink device="hw:0,0"' /etc/pulse/system.pa; then
+        echo_yellow '"load-module module-alsa-sink" already in /etc/pulse/system.pa'
+    else
+        # If not, we add it to /etc/pulse/system.pa
+        echo_green "Adding 'load-module module-alsa-sink device="hw:0,0"' to /etc/pulse/system.pa..[OK]"
+        echo 'load-module module-alsa-sink device="hw:0,0"' | sudo tee -a /etc/pulse/system.pa >/dev/null
+    fi
+
+    # Check if alsa_output.hw_0_0 is already set as default in system.pa
+    if grep -Fxq 'set-default-sink alsa_output.hw_0_0' /etc/pulse/system.pa; then
+        echo_yellow '"set-default-sink alsa_output.hw_0_0" already in /etc/pulse/system.pa'
+    else
+        # If not, we add it to /etc/pulse/system.pa
+        echo_green "Adding 'set-default-sink alsa_output.hw_0_0' to /etc/pulse/system.pa..[OK]"
+        echo 'set-default-sink alsa_output.hw_0_0' | sudo tee -a /etc/pulse/system.pa >/dev/null
+    fi
+
+    # We comment out load-module module-suspend-on-idle in /etc/pulse/system.pa to avoid a delay if the module is suspend
+    sudo sed -e '/load-module module-suspend-on-idle/ s/^#*/#/' -i /etc/pulse/system.pa
+    
+    if [[ -f "/etc/systemd/system/pulseaudio.service" ]]; then
+        # If the service already exists, we can skip this step
+        echo_green "Pulseaudio service already existing"
+    else
+        echo_yellow "Create pulseaudio service"
+        # Copy the pulseaudio service to /etc/systemd/system/
+        sudo cp $(pwd)/kalliope/install/files/pulseaudio.service /etc/systemd/system/
+        echo_green "Creating pulseaudio service..[OK]"
+        sudo systemctl daemon-reload
+        sudo systemctl start pulseaudio
+        sudo systemctl enable pulseaudio
+        echo_green "Enable and starting pulseaudio.service..[OK]"
+    fi
+    echo_green "Installing pulseaudio service..[OK]"
 }
 #------------------------------------------
 # Main
@@ -161,6 +232,7 @@ else
 fi
 
 install_kalliope
+setup_pulseaudio
 
 # fix https://github.com/kalliope-project/kalliope/issues/487
 # sudo chmod -R o+r /usr/local/lib/python3.7/dist-packages/
