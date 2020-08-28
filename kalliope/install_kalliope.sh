@@ -86,6 +86,8 @@ install_pico2wave(){
 }
 
 install_kalliope(){
+    mkdir smartor
+    cd smartor
     if [[ -d "cavu-kalliope" ]]; then
         echo_green "Source folder already cloned"
     else
