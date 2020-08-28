@@ -109,6 +109,9 @@ install_kalliope(){
     pip install "Cython" 
     cd cavu-kalliope    
     python setup.py install
+    cd ../smartor-kalliope
+    cp setting.org setting.yml
+    cp global_variables/variables.org global_variables/variables.yml
     cd ..
     echo_green "Installing Kalliope...[OK]"
 }
