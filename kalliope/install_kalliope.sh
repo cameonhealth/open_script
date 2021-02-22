@@ -105,6 +105,7 @@ install_kalliope(){
     python3 -m venv venv
     source venv/bin/activate
     # fix for last ansible
+    pip install --upgrade pip
     pip install "ansible==2.9.5"
     pip install "Cython" 
     cd cavu-kalliope    
